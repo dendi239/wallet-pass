@@ -36,7 +36,7 @@ async def show_help(message: types.Message) -> None:
 async def show_todo(message: types.Message) -> None:
     todo_message = md.text(
         md.bold('TODO list:'),
-        md.text('- support expire_date'),
+        md.text('- support expire date'),
         md.text('- consider using builtin time/date formatting'),
         md.text('- check if everything okay with timezones and winter time'),
         md.text('- clear passes feature'),
