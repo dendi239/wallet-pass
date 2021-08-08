@@ -40,27 +40,36 @@ async def register_pass(data: tp.Dict[str, str]) -> tp.Dict[str, str]:
             return await response.json()
 
 
+def get_(data: tp.List[str], key: str, shift: int = 1) -> str:
+    for k, v in zip(data, data[shift:]):
+        if k == key:
+            return v
+    raise ValueError(f'{key} not found in {data}')
+
+
 def parse_ticket(s: str) -> tp.Dict[str, str]:
-    tokens = sum([line.split('\t') for line in s.split('\n')], [])
+    tokens = [token for line in s.split('\n') for token in line.split('\t') if token]
     for i, line in enumerate(tokens):
         print(i, line)
 
-    uid = tokens[2]
-    name, train = tokens[14], tokens[16]
+    uid = get_(tokens, 'ПОСАДОЧНИЙ ДОКУМЕНТ')
+    name, train = get_(tokens, 'Прізвище, Ім’я'), get_(tokens, 'Поїзд')
     train = train.split()[0]
 
-    station_in, coach = tokens[19], tokens[21]
+    station_in, coach = get_(tokens, 'Відправлення', shift=2), get_(tokens, 'Вагон')
     coach = coach.split()[0]
 
     station_out, seat = tokens[24], tokens[26]
     seat = seat.split()[0]
+
+    time_in, time_out = get_(tokens, 'Дата/час відпр.'), get_(tokens, 'Дата/час приб.')
 
     # TODO: Check winter time
     time_zone = datetime.timezone(offset=datetime.timedelta(hours=2))
     time_in, time_out = map(lambda t: datetime.datetime
                             .strptime(t, '%d.%m.%Y %H:%M')
                             .replace(tzinfo=time_zone),
-                            (tokens[28], tokens[33]))
+                            (time_in, time_out))
 
     return {
         'uid': uid,
