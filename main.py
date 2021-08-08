@@ -66,8 +66,6 @@ def get_(data: tp.List[str], key: str, shift: int = 1) -> str:
 
 def parse_ticket(s: str) -> tp.Dict[str, str]:
     tokens = [token for line in s.split('\n') for token in line.split('\t') if token]
-    for i, line in enumerate(tokens):
-        print(i, line)
 
     uid = get_(tokens, 'ПОСАДОЧНИЙ ДОКУМЕНТ')
     name, train = get_(tokens, 'Прізвище, Ім’я'), get_(tokens, 'Поїзд')
