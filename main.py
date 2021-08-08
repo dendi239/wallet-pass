@@ -59,7 +59,7 @@ def parse_ticket(s: str) -> tp.Dict[str, str]:
     station_in, coach = get_(tokens, 'Відправлення', shift=2), get_(tokens, 'Вагон')
     coach = coach.split()[0]
 
-    station_out, seat = tokens[24], tokens[26]
+    station_out, seat = get_(tokens, 'Призначення', shift=2), get_(tokens, 'Місце')
     seat = seat.split()[0]
 
     time_in, time_out = get_(tokens, 'Дата/час відпр.'), get_(tokens, 'Дата/час приб.')
