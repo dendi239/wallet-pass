@@ -85,7 +85,7 @@ async def create_ticket(message: types.Message) -> None:
         ticket = parse_ticket(message.text)
     except Exception as e:
         await message.reply(f'parsing failed: {e}')
-        raise
+        return
 
     logging.info(f'Parsed ticket: {ticket}')
 
@@ -93,7 +93,7 @@ async def create_ticket(message: types.Message) -> None:
         registered = await register_pass(ticket)
     except Exception as e:
         await message.reply(f'Registering failed: {e} ({type(e)})')
-        raise
+        return
 
     if 'url' not in registered:
         await message.reply(f'something went wrong with {registered}')
