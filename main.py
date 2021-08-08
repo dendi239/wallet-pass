@@ -41,6 +41,7 @@ async def show_todo(message: types.Message) -> None:
         md.text('- check if everything okay with timezones and winter time'),
         md.text('- clear passes feature'),
         md.text('- consider more convenient interface'),
+        md.text('- make group identifier right'),
         sep='\n',
     )
     logging.info(f'sending {todo_message}')
