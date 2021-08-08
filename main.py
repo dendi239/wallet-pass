@@ -43,6 +43,7 @@ async def show_todo(message: types.Message) -> None:
         md.text('- consider more convenient interface'),
         sep='\n',
     )
+    logging.info(f'sending {todo_message}')
     await bot.send_message(message.chat.id, todo_message, parse_mode=types.ParseMode.MARKDOWN)
 
 
