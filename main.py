@@ -8,6 +8,7 @@ import typing as tp
 import urllib.parse
 
 import aiohttp
+import aiogram.utils.markdown as md
 from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
@@ -29,6 +30,20 @@ async def show_help(message: types.Message) -> None:
         "Это бот который по билету укрзализныци генерирует pkpass. " \
         "Просто скопируйте текст билета и пришлите мне его в сообщении."
     await bot.send_message(message.chat.id, help_message, parse_mode=types.ParseMode.MARKDOWN)
+
+
+@dp.message_handler(commands=['todo'])
+async def show_todo(message: types.Message) -> None:
+    todo_message = md.text(
+        md.bold('TODO list:'),
+        md.text('- support expire_date'),
+        md.text('- consider using builtin time/date formatting'),
+        md.text('- check if everything okay with timezones and winter time'),
+        md.text('- clear passes feature'),
+        md.text('- consider more convenient interface'),
+        sep='\n',
+    )
+    await bot.send_message(message.chat.id, todo_message, parse_mode=types.ParseMode.MARKDOWN)
 
 
 async def register_pass(data: tp.Dict[str, str]) -> tp.Dict[str, str]:
