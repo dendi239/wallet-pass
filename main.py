@@ -134,7 +134,7 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
     train_index = 0
     for i, token in enumerate(tokens):
         if token.strip().startswith('ФК:'):
-            train_index = i + 1
+            train_index = i + 2
             break
 
     return build_ticket(
