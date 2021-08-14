@@ -137,6 +137,15 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
             train_index = i + 2
             break
 
+    time_index = 0
+    for i, (token, next_token) in enumerate(zip(tokens, tokens[1:])):
+        try:
+            _, _ = parse_time(token), parse_time(next_token)
+            time_index = i
+            break
+        except ValueError:
+            pass
+
     return build_ticket(
         uid=tokens[7],
         name=tokens[10],
@@ -145,8 +154,8 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
         seat=tokens[train_index+2].split()[0],
         station_in=''.join(tokens[station_index].split()[1:]),
         station_out=''.join(tokens[station_index+1].split()[1:]),
-        time_in=parse_time(tokens[station_index+2]),
-        time_out=parse_time(tokens[station_index+3]),
+        time_in=parse_time(tokens[time_index]),
+        time_out=parse_time(tokens[time_index+1]),
     )
 
 
