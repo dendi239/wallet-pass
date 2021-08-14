@@ -127,7 +127,7 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
 
     station_index = 0
     for i, token in enumerate(tokens):
-        if all(d.isdigit() for d in token[:7]) and token[7].isspace():
+        if len(token) > 7 and all(d.isdigit() for d in token[:7]) and token[7].isspace():
             station_index = i
             break
 
