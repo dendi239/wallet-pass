@@ -125,16 +125,28 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
     for i, token in enumerate(tokens):
         logging.info(f'get token #{i:02}: "{token}"')
 
+    station_index = 0
+    for i, token in enumerate(tokens):
+        if all(d.isdigit() for d in token[:7]) and token[7].isspace():
+            station_index = i
+            break
+
+    train_index = 0
+    for i, token in enumerate(tokens):
+        if token.strip().startswith('ФК:'):
+            train_index = i + 1
+            break
+
     return build_ticket(
         uid=tokens[7],
         name=tokens[10],
-        train=tokens[41].split()[0],
-        coach=tokens[42].split()[0],
-        seat=tokens[43].split()[0],
-        station_in=''.join(tokens[12].split()[1:]),
-        station_out=''.join(tokens[13].split()[1:]),
-        time_in=parse_time(tokens[28]),
-        time_out=parse_time(tokens[29]),
+        train=tokens[train_index].split()[0],
+        coach=tokens[train_index+1].split()[0],
+        seat=tokens[train_index+2].split()[0],
+        station_in=''.join(tokens[station_index].split()[1:]),
+        station_out=''.join(tokens[station_index+1].split()[1:]),
+        time_in=parse_time(tokens[station_index+2]),
+        time_out=parse_time(tokens[station_index+3]),
     )
 
 
