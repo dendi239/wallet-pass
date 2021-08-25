@@ -75,16 +75,22 @@ def parse_time(t: str) -> datetime.datetime:
         .replace(tzinfo=time_zone)
 
 
+def rebuild_uid(uid: str) -> str:
+    parts = uid.split('-')
+    return f'{parts[0]}-{"".join(parts[1:-1])}-{parts[-1]}'
+
+
 def build_ticket(
         uid: str, name: str, train: str, seat: str, coach: str,
         station_in: str, station_out: str,
         time_in: datetime.datetime, time_out: datetime.datetime,
 ) -> tp.Dict[str, str]:
     return {
-        'uid': uid,
+        'uid': rebuild_uid(uid),
         'name': name,
         'train': train,
         'relevant_date': time_in.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%m+00:00'),
+        'expiration_date': time_out.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%m+00:00'),
         'from': station_in,
         'from_time': time_in.strftime('%H:%M'),
         'to_time': time_out.strftime('%H:%M'),
