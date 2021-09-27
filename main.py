@@ -8,6 +8,7 @@ import tempfile
 import typing as tp
 import urllib.parse
 
+import aiogram.types.message
 import aiohttp
 import aiogram.utils.markdown as md
 import textract
@@ -73,7 +74,8 @@ def parse_time(t: str) -> datetime.datetime:
 
     return datetime.datetime \
         .strptime(t, '%d.%m.%Y %H:%M') \
-        .replace(tzinfo=time_zone)
+        .replace(tzinfo=time_zone) \
+        .astimezone(datetime.timezone.utc)
 
 
 def rebuild_uid(uid: str) -> str:
@@ -90,8 +92,8 @@ def build_ticket(
         'uid': rebuild_uid(uid),
         'name': name,
         'train': train,
-        'relevant_date': time_in.strftime('%Y-%m-%dT%H:%M+03:00'),
-        'expiration_date': time_out.strftime('%Y-%m-%dT%H:%M+03:00'),
+        'relevant_date': time_in.strftime('%Y-%m-%dT%H:%M:%S+00:00'),
+        'expiration_date': time_out.strftime('%Y-%m-%dT%H:%M:%S+00:00'),
         'from': station_in,
         'to': station_out,
         'seat': seat,
@@ -150,9 +152,10 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
             pass
 
     name_index = 10
-    for i, token in enumerate(tokens):
-        if token == "Прізвище, Ім’я":
-            name_index = i + 1
+    if tokens[name_index] == 'ЦЕЙ ПОСАДОЧНИЙ ДОКУМЕНТ Є ПІДСТАВОЮ ДЛЯ ПРОЇЗДУ':
+        for i, token in enumerate(tokens):
+            if token == "Прізвище, Ім’я":
+                name_index = i + 1
 
     return build_ticket(
         uid=tokens[7],
@@ -165,6 +168,11 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
         time_in=parse_time(tokens[time_index]),
         time_out=parse_time(tokens[time_index+1]),
     )
+
+
+def _make_pkpass(url: str) -> str:
+    i = url.find('?')
+    return url[:i] + '.pkpass' + url[i:]
 
 
 async def process_text(text: str, message: types.Message, pdf=False) -> None:
@@ -190,8 +198,19 @@ async def process_text(text: str, message: types.Message, pdf=False) -> None:
     if 'url' not in registered:
         await message.reply(f'something went wrong with {registered}')
     else:
+        filename = f'{registered["serialNumber"]}.pkpass'
+        async with aiohttp.ClientSession() as session:
+            url = _make_pkpass(registered['url'])
+            print(registered)
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    with open(filename, mode='wb') as f:
+                        f.write(await resp.read())
+
         # TODO: Delete tickets after creating
-        await message.reply(registered['url'])
+        # NOTE: You can use info from `registered` dictionary
+
+        await bot.send_document(message.chat.id, aiogram.types.InputFile(filename))
 
 
 @dp.message_handler(content_types=types.ContentTypes.DOCUMENT | types.ContentTypes.TEXT)
