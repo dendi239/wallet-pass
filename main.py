@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-
+import argparse
 import asyncio
 import datetime
 import logging
@@ -15,6 +15,7 @@ from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
+
 
 PASSSLOT_API_KEY = os.environ['PASSSLOT_API_KEY']
 TELEGRAM_API_TOKEN = os.environ['TELEGRAM_API_TOKEN']
@@ -89,8 +90,8 @@ def build_ticket(
         'uid': rebuild_uid(uid),
         'name': name,
         'train': train,
-        'relevant_date': time_in.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%m+00:00'),
-        'expiration_date': time_out.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%m+00:00'),
+        'relevant_date': time_in.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+00:00'),
+        'expiration_date': time_out.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+00:00'),
         'from': station_in,
         'from_time': time_in.strftime('%H:%M'),
         'to_time': time_out.strftime('%H:%M'),
@@ -152,9 +153,14 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
         except ValueError:
             pass
 
+    name_index = 10
+    for i, token in enumerate(tokens):
+        if token == "Прізвище, Ім’я":
+            name_index = i + 1
+
     return build_ticket(
         uid=tokens[7],
-        name=tokens[10],
+        name=tokens[name_index],
         train=tokens[train_index].split()[0],
         coach=tokens[train_index+1].split()[0],
         seat=tokens[train_index+2].split()[0],
@@ -246,4 +252,15 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pdf", nargs="?")
+    args = parser.parse_args()
+
+    if args.pdf is not None:
+        for page in textract.process(args.pdf) \
+                .decode('utf-8') \
+                .split('\f'):
+            if page:
+                print(parse_ticket_from_pdf(page))
+    else:
+        main()
