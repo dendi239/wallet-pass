@@ -69,7 +69,7 @@ def get_(data: tp.List[str], key: str, shift: int = 1) -> str:
 
 def parse_time(t: str) -> datetime.datetime:
     # TODO: Check winter time
-    time_zone = datetime.timezone(offset=datetime.timedelta(hours=2))
+    time_zone = datetime.timezone(offset=datetime.timedelta(hours=3))
 
     return datetime.datetime \
         .strptime(t, '%d.%m.%Y %H:%M') \
@@ -90,13 +90,9 @@ def build_ticket(
         'uid': rebuild_uid(uid),
         'name': name,
         'train': train,
-        'relevant_date': time_in.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+00:00'),
-        'expiration_date': time_out.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+00:00'),
+        'relevant_date': time_in.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+03:00'),
+        'expiration_date': time_out.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M+03:00'),
         'from': station_in,
-        'from_time': time_in.strftime('%H:%M'),
-        'to_time': time_out.strftime('%H:%M'),
-        'from_day': time_in.strftime('%d %b %Y'),
-        'to_day': time_out.strftime('%d %b %Y'),
         'to': station_out,
         'seat': seat,
         'coach': coach,
