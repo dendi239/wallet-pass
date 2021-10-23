@@ -32,7 +32,7 @@ dp.middleware.setup(LoggingMiddleware())
 async def show_help(message: types.Message) -> None:
     help_message = \
         "Это бот который по билету укрзализныци генерирует pkpass. " \
-        "Просто скопируйте текст билета и пришлите мне его в сообщении."
+        "Просто отправьте мне *.pdf с билетом и я всё сделаю."
     await bot.send_message(message.chat.id, help_message, parse_mode=types.ParseMode.MARKDOWN)
 
 
