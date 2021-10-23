@@ -73,7 +73,7 @@ def parse_time(t: str) -> datetime.datetime:
     time_zone = datetime.timezone(offset=datetime.timedelta(hours=3))
 
     return datetime.datetime \
-        .strptime(t, '%d.%m.%Y %H:%M') \
+        .strptime(t.strip(), '%d.%m.%Y %H:%M') \
         .replace(tzinfo=time_zone) \
         .astimezone(datetime.timezone.utc)
 
