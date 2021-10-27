@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import datetime
+import dateutil.tz
 import logging
 import os
 import tempfile
@@ -69,8 +70,7 @@ def get_(data: tp.List[str], key: str, shift: int = 1) -> str:
 
 
 def parse_time(t: str) -> datetime.datetime:
-    # TODO: Check winter time
-    time_zone = datetime.timezone(offset=datetime.timedelta(hours=3))
+    time_zone = dateutil.tz.gettz('EET')
 
     return datetime.datetime \
         .strptime(t.strip(), '%d.%m.%Y %H:%M') \
