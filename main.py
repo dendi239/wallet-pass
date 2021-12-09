@@ -142,14 +142,22 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
             train_index = i + 2
             break
 
-    time_index = 0
-    for i, (token, next_token) in enumerate(zip(tokens, tokens[1:])):
-        try:
-            _, _ = parse_time(token), parse_time(next_token)
-            time_index = i
+    time_index, out_time_index = -1, -1
+    for diff in range(1, 5):
+        for i, (token, next_token) in enumerate(zip(tokens, tokens[diff:])):
+            try:
+                _, _ = parse_time(token), parse_time(next_token)
+                time_index = i
+                out_time_index = i + diff
+                break
+            except ValueError:
+                pass
+
+        if time_index != -1:
             break
-        except ValueError:
-            pass
+
+    if time_index == -1:
+        raise ValueError('no time has been found')
 
     name_index = 10
     if tokens[name_index] == 'ЦЕЙ ПОСАДОЧНИЙ ДОКУМЕНТ Є ПІДСТАВОЮ ДЛЯ ПРОЇЗДУ':
@@ -166,7 +174,7 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
         station_in=''.join(tokens[station_index].split()[1:]),
         station_out=''.join(tokens[station_index+1].split()[1:]),
         time_in=parse_time(tokens[time_index]),
-        time_out=parse_time(tokens[time_index+1]),
+        time_out=parse_time(tokens[out_time_index]),
     )
 
 
