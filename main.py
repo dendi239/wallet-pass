@@ -165,6 +165,9 @@ def parse_ticket_from_pdf(text: str) -> tp.Dict[str, str]:
             if token == "Прізвище, Ім’я":
                 name_index = i + 1
 
+    if tokens[name_index] in {'', 'Відправлення'}:
+        name_index = 12
+
     return build_ticket(
         uid=tokens[7],
         name=tokens[name_index],
