@@ -17,6 +17,7 @@ from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
+import ics
 
 
 PASSSLOT_API_KEY = os.environ['PASSSLOT_API_KEY']
@@ -186,6 +187,13 @@ def _make_pkpass(url: str) -> str:
     return url[:i] + '.pkpass' + url[i:]
 
 
+def _make_calendar_event(ticket: tp.Dict[str, tp.Any]) -> str:
+    return build_calendar_event(
+        ticket['relevant_date'], ticket['expiration_date'],
+        ticket['from'], ticket['to'],
+    )
+
+
 async def process_text(text: str, message: types.Message, pdf=False) -> None:
     logging.info(f'start process text for {message.from_user}: {text}')
 
@@ -209,7 +217,8 @@ async def process_text(text: str, message: types.Message, pdf=False) -> None:
     if 'url' not in registered:
         await message.reply(f'something went wrong with {registered}')
     else:
-        filename = f'{registered["serialNumber"]}.pkpass'
+        id_ = registered["serialNumber"]
+        filename = f'{id_}.pkpass'
         async with aiohttp.ClientSession() as session:
             url = _make_pkpass(registered['url'])
             print(registered)
@@ -222,6 +231,12 @@ async def process_text(text: str, message: types.Message, pdf=False) -> None:
         # NOTE: You can use info from `registered` dictionary
 
         await bot.send_document(message.chat.id, aiogram.types.InputFile(filename))
+
+        calendar_event_name = f'{id_}.ics'
+        with open(calendar_event_name, 'w') as cal_event:
+            print(_make_calendar_event(ticket), file=cal_event, flush=True)
+
+        await bot.send_document(message.chat.id, aiogram.types.InputFile(calendar_event_name))
 
 
 @dp.message_handler(content_types=types.ContentTypes.DOCUMENT | types.ContentTypes.TEXT)
@@ -246,6 +261,31 @@ async def create_ticket(message: types.Message) -> None:
                     pass
     else:
         await process_text(message.text, message)
+
+
+def _simplify_station_name(name: str) -> str:
+    return name.lower().title()
+
+
+def build_calendar_event(
+        begin_time: datetime.datetime,
+        end_time: datetime.datetime,
+        in_station: str,
+        out_station: str,
+) -> ics.Calendar:
+    in_station = _simplify_station_name(in_station)
+    out_station = _simplify_station_name(out_station)
+
+    event = ics.Event()
+    event.name = f'Поезд {in_station} - {out_station}'
+
+    event.begin = begin_time
+    event.end = end_time
+
+    calendar = ics.Calendar()
+    calendar.events.add(event)
+
+    return calendar
 
 
 def main() -> None:
@@ -280,6 +320,7 @@ def main() -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--pdf", nargs="?")
+    parser.add_argument("--ics", nargs="?")
     args = parser.parse_args()
 
     if args.pdf is not None:
@@ -287,6 +328,14 @@ if __name__ == '__main__':
                 .decode('utf-8') \
                 .split('\f'):
             if page:
-                print(parse_ticket_from_pdf(page))
+                ticket = parse_ticket_from_pdf(page)
+                print(ticket)
+
+                if args.ics is not None:
+                    with open(args.ics, 'w') as f:
+                        print(build_calendar_event(
+                            ticket['relevant_date'], ticket['expiration_date'],
+                            ticket['from'], ticket['to'],
+                        ), file=f)
     else:
         main()
