@@ -2,6 +2,8 @@
 import argparse
 import asyncio
 import datetime
+import io
+
 import dateutil.tz
 import logging
 import os
@@ -216,27 +218,23 @@ async def process_text(text: str, message: types.Message, pdf=False) -> None:
 
     if 'url' not in registered:
         await message.reply(f'something went wrong with {registered}')
-    else:
-        id_ = registered["serialNumber"]
-        filename = f'{id_}.pkpass'
-        async with aiohttp.ClientSession() as session:
-            url = _make_pkpass(registered['url'])
-            print(registered)
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    with open(filename, mode='wb') as f:
-                        f.write(await resp.read())
+        return
 
-        # TODO: Delete tickets after creating
-        # NOTE: You can use info from `registered` dictionary
+    id_ = registered["serialNumber"]
+    async with aiohttp.ClientSession() as session:
+        url = _make_pkpass(registered['url'])
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            pkpass = io.BytesIO(await resp.read())
 
-        await bot.send_document(message.chat.id, aiogram.types.InputFile(filename))
+    await bot.send_document(message.chat.id, aiogram.types.InputFile(pkpass, filename=f'{id_}.pkpass'))
 
-        calendar_event_name = f'{id_}.ics'
-        with open(calendar_event_name, 'w') as cal_event:
-            print(_make_calendar_event(ticket), file=cal_event, flush=True)
+    calendar = _make_calendar_event(ticket)
+    calendar_io = io.StringIO(str(calendar))
 
-        await bot.send_document(message.chat.id, aiogram.types.InputFile(calendar_event_name))
+    await bot.send_document(message.chat.id, aiogram.types.InputFile(calendar_io, filename=f'{id_}.ics'))
+
+    # TODO: Delete actual ticket using passslot API
 
 
 @dp.message_handler(content_types=types.ContentTypes.DOCUMENT | types.ContentTypes.TEXT)
