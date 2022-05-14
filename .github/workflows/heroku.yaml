@@ -14,7 +14,7 @@ jobs:
       - uses: bazelbuild/setup-bazelisk@v2
       - run: bazel build cmd:main
       - run: cp -r bazel-bin/cmd/ out
-      - run: echo 'web: ./main' > out/Procfile
+      - run: cp Procfile out/Procfile
       - uses: akhileshns/heroku-deploy@v3.4.6 # This is the action
         with:
           appdir: out
