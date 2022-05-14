@@ -16,10 +16,8 @@ jobs:
       - run: python3 -m piptools compile
       - run: bazel build cmd:main
       - run: cp -r bazel-bin/cmd/ out
-      - run: cp Procfile out/Procfile
       - uses: akhileshns/heroku-deploy@v3.4.6 # This is the action
         with:
-          appdir: out
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
