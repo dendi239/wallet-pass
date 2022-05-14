@@ -17,4 +17,5 @@ py_binary(
     requirement("textract"),
   ],
   srcs = ["main.py"],
+  python_version = "PY3",
 )
