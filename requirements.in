@@ -1,0 +1,6 @@
+aiogram~=2.11.2
+aiohttp~=3.7.3
+textract~=1.6.3
+python-dateutil
+ics~=0.7
+pydantic
