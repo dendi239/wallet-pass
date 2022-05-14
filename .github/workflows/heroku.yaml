@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: bazelbuild/setup-bazelisk@v2
       - run: python3 -m pip install pip-tools
-      - run: python3 -m piptools.compile
+      - run: python3 -m piptools compile
       - run: bazel build cmd:main
       - run: cp -r bazel-bin/cmd/ out
       - run: cp Procfile out/Procfile
